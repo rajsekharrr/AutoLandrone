@@ -1,4 +1,6 @@
 import streamlit as st
+import time
+import pandas as pd
 from src.landing_controller import LandingController
 from src.alert import AlertSystem
 from src.logger import DecisionLogger
@@ -190,34 +192,196 @@ with col2:
     st.write("")  # Spacing
     if st.button("▶️ RUN SCENARIO", type="primary", use_container_width=True):
         st.session_state.logger.clear()
-
-        # Create controller with grid simulation enabled
-        controller = LandingController(use_grid_simulation=True, grid_size=7)
-        controller.set_grid_obstacles(scenario["obstacles"])
-
-        state, action, reason = controller.process_telemetry(
-            battery,
-            distance,
-            scan_result=None
-        )
-
-        st.session_state.logger.log_decision(
-            1,
-            battery,
-            distance,
-            state,
-            action,
-            reason,
-            None
-        )
-
-        # Store results
-        st.session_state.grid_state = controller.get_grid_state()
-        st.session_state.final_state = state
-        st.session_state.final_action = action
-        st.session_state.final_reason = reason
-        st.session_state.processed = True
+        st.session_state.processed = False
+        st.session_state.animation_complete = False
         st.rerun()
+
+# Run animation if button was clicked
+if "animation_complete" in st.session_state and not st.session_state.animation_complete and not st.session_state.processed:
+    st.divider()
+    st.subheader("🎬 Simulation in Progress...")
+
+    # Create placeholders for animation
+    status_placeholder = st.empty()
+    chart_placeholder = st.empty()
+    grid_placeholder = st.empty()
+    metrics_placeholder = st.empty()
+
+    # Initialize simulation data
+    simulation_steps = []
+    battery = scenario["battery"]
+    distance = scenario["distance"]
+    is_critical = battery <= BATTERY_CRITICAL_THRESHOLD
+    has_obstacle = distance < OBSTACLE_SAFE_DISTANCE
+    needs_scan = is_critical and has_obstacle
+
+    # Step 1: Battery Check
+    status_placeholder.info("**Step 1/5:** 🔋 Checking battery level...")
+    simulation_steps.append({"Step": "Start", "Battery %": battery, "Status": "Monitoring"})
+    chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+    time.sleep(0.6)
+
+    simulation_steps.append({"Step": "Battery Check", "Battery %": battery, "Status": "Critical" if is_critical else "Normal"})
+    chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+
+    if is_critical:
+        status_placeholder.warning(f"**Step 1/5:** 🔋 Battery at {battery}% - CRITICAL!")
+    else:
+        status_placeholder.success(f"**Step 1/5:** 🔋 Battery at {battery}% - Normal")
+    time.sleep(0.6)
+
+    # Step 2: Obstacle Detection
+    status_placeholder.info("**Step 2/5:** 📏 Detecting obstacles below drone...")
+    time.sleep(0.6)
+
+    simulation_steps.append({"Step": "Obstacle Check", "Battery %": battery, "Status": "Obstacle" if has_obstacle else "Clear"})
+    chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+
+    if has_obstacle:
+        status_placeholder.warning(f"**Step 2/5:** 📏 Obstacle detected at {distance}m - UNSAFE!")
+    else:
+        status_placeholder.success(f"**Step 2/5:** 📏 Distance {distance}m - Clear for landing")
+    time.sleep(0.6)
+
+    # Create controller with grid simulation enabled
+    controller = LandingController(use_grid_simulation=True, grid_size=7)
+    controller.set_grid_obstacles(scenario["obstacles"])
+
+    # Step 3: Hover and Scan (if needed)
+    if needs_scan:
+        status_placeholder.info("**Step 3/5:** 🚁 Hovering and initiating grid scan...")
+        simulation_steps.append({"Step": "Hovering", "Battery %": battery - 0.5, "Status": "Scanning"})
+        chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+        time.sleep(0.7)
+
+        # Get grid state for visualization
+        grid_state_temp = controller.get_grid_state()
+        grid = grid_state_temp['grid']
+        drone_pos = grid_state_temp['drone_position']
+        grid_size = grid_state_temp['grid_size']
+
+        # Show initial grid
+        status_placeholder.info("**Step 4/5:** 🔍 Scanning nearby cells...")
+
+        # Calculate cells to scan
+        scan_radius = 2
+        cells_to_scan = []
+        for row in range(max(0, drone_pos[0] - scan_radius), min(grid_size, drone_pos[0] + scan_radius + 1)):
+            for col in range(max(0, drone_pos[1] - scan_radius), min(grid_size, drone_pos[1] + scan_radius + 1)):
+                if (row, col) != drone_pos:
+                    cells_to_scan.append((row, col))
+
+        # Animate scanning process
+        scanned_cells = set()
+        safe_cells = []
+        blocked_cells = []
+
+        for idx, cell in enumerate(cells_to_scan):
+            scanned_cells.add(cell)
+
+            # Check if cell is safe or blocked
+            if grid[cell[0]][cell[1]] == 'obstacle':
+                blocked_cells.append(cell)
+            else:
+                safe_cells.append(cell)
+
+            # Update grid visualization every few cells for performance
+            if idx % 4 == 0 or idx == len(cells_to_scan) - 1:
+                grid_html = "<div style='text-align: center;'>"
+                for row in range(grid_size):
+                    for col in range(grid_size):
+                        if (row, col) == drone_pos:
+                            grid_html += "<span class='grid-cell' style='background-color: #28a745; color: white;'>🚁</span>"
+                        elif grid[row][col] == 'obstacle':
+                            grid_html += "<span class='grid-cell' style='background-color: #dc3545; color: white;'>❌</span>"
+                        elif (row, col) in scanned_cells:
+                            grid_html += "<span class='grid-cell' style='background-color: #007bff; color: white;'>🔍</span>"
+                        else:
+                            grid_html += "<span class='grid-cell' style='background-color: #e9ecef; color: #6c757d;'>⬜</span>"
+                    grid_html += "<br>"
+                grid_html += "</div>"
+
+                grid_placeholder.markdown(grid_html, unsafe_allow_html=True)
+
+                # Update metrics
+                with metrics_placeholder.container():
+                    met_col1, met_col2, met_col3 = st.columns(3)
+                    with met_col1:
+                        st.metric("🔍 Cells Scanned", f"{len(scanned_cells)}/{len(cells_to_scan)}")
+                    with met_col2:
+                        st.metric("✅ Safe Cells Found", len(safe_cells))
+                    with met_col3:
+                        st.metric("❌ Blocked Cells", len(blocked_cells))
+
+                time.sleep(0.15)
+
+        # Process and find nearest safe cell
+        state, action, reason = controller.process_telemetry(battery, distance, scan_result=None)
+        grid_state = controller.get_grid_state()
+        nearest = grid_state['nearest_safe_cell']
+
+        simulation_steps.append({"Step": "Scan Complete", "Battery %": battery - 1.0, "Status": "Analyzed"})
+        chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+
+        if nearest:
+            status_placeholder.success(f"**Step 4/5:** ✅ Safe landing cell found at ({nearest[0]}, {nearest[1]})!")
+
+            # Show final grid with selected cell
+            grid_html = "<div style='text-align: center;'>"
+            for row in range(grid_size):
+                for col in range(grid_size):
+                    if (row, col) == drone_pos:
+                        grid_html += "<span class='grid-cell' style='background-color: #28a745; color: white;'>🚁</span>"
+                    elif (row, col) == nearest:
+                        grid_html += "<span class='grid-cell' style='background-color: #ffc107; color: white;'>⭐</span>"
+                    elif grid[row][col] == 'obstacle':
+                        grid_html += "<span class='grid-cell' style='background-color: #dc3545; color: white;'>❌</span>"
+                    elif (row, col) in scanned_cells:
+                        grid_html += "<span class='grid-cell' style='background-color: #007bff; color: white;'>🔍</span>"
+                    else:
+                        grid_html += "<span class='grid-cell' style='background-color: #e9ecef; color: #6c757d;'>⬜</span>"
+                grid_html += "<br>"
+            grid_html += "</div>"
+            grid_placeholder.markdown(grid_html, unsafe_allow_html=True)
+        else:
+            status_placeholder.error("**Step 4/5:** ⚠️ No safe landing cell available - all cells blocked!")
+
+        time.sleep(0.8)
+
+    else:
+        # No scan needed
+        status_placeholder.info("**Step 3/5:** 🚁 Hover & Scan - SKIPPED (not needed)")
+        time.sleep(0.5)
+        status_placeholder.info("**Step 4/5:** 🔍 Find Safe Cell - SKIPPED (not needed)")
+        time.sleep(0.5)
+
+        # Process without scanning
+        state, action, reason = controller.process_telemetry(battery, distance, scan_result=None)
+        grid_state = controller.get_grid_state()
+
+    # Step 5: Final Action
+    simulation_steps.append({"Step": "Decision", "Battery %": battery - 1.5, "Status": "Complete"})
+    chart_placeholder.line_chart(pd.DataFrame(simulation_steps).set_index("Step"))
+
+    if "LAND" in action:
+        status_placeholder.success(f"**Step 5/5:** 🛬 Executing landing procedure - {action.replace('_', ' ')}")
+    else:
+        status_placeholder.error(f"**Step 5/5:** ⏸️ Holding position - {action.replace('_', ' ')}")
+
+    time.sleep(0.8)
+
+    # Store results and complete animation
+    st.session_state.logger.log_decision(1, battery, distance, state, action, reason, None)
+    st.session_state.grid_state = grid_state
+    st.session_state.final_state = state
+    st.session_state.final_action = action
+    st.session_state.final_reason = reason
+    st.session_state.animation_complete = True
+    st.session_state.processed = True
+
+    status_placeholder.success("✅ **Simulation Complete!** - Scroll down for detailed results")
+    time.sleep(1.5)
+    st.rerun()
 
 # Show results if processed
 if st.session_state.processed:
@@ -348,6 +512,56 @@ if st.session_state.processed:
         scanned = set(grid_state['scanned_cells'])
         nearest = grid_state['nearest_safe_cell']
 
+        # Calculate scan summary statistics
+        total_scanned = len(scanned)
+        safe_count = 0
+        blocked_count = 0
+
+        for cell in scanned:
+            if grid[cell[0]][cell[1]] == 'obstacle':
+                blocked_count += 1
+            else:
+                safe_count += 1
+
+        # Scan Summary Box (only if scanning occurred)
+        if total_scanned > 0:
+            scan_summary_col1, scan_summary_col2, scan_summary_col3, scan_summary_col4 = st.columns(4)
+
+            with scan_summary_col1:
+                st.markdown("""
+                <div class="status-safe" style="text-align: center;">
+                    <h3 style="margin: 0;">📊 Scan Summary</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> cells scanned</p>
+                </div>
+                """.format(total_scanned), unsafe_allow_html=True)
+
+            with scan_summary_col2:
+                st.markdown("""
+                <div class="status-safe" style="text-align: center;">
+                    <h3 style="margin: 0;">✅ Safe Cells</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> available</p>
+                </div>
+                """.format(safe_count), unsafe_allow_html=True)
+
+            with scan_summary_col3:
+                st.markdown("""
+                <div class="status-danger" style="text-align: center;">
+                    <h3 style="margin: 0;">❌ Blocked</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> obstacles</p>
+                </div>
+                """.format(blocked_count), unsafe_allow_html=True)
+
+            with scan_summary_col4:
+                success_rate = (safe_count / total_scanned * 100) if total_scanned > 0 else 0
+                st.markdown("""
+                <div class="status-warning" style="text-align: center;">
+                    <h3 style="margin: 0;">📈 Success Rate</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{:.1f}%</strong> safe</p>
+                </div>
+                """.format(success_rate), unsafe_allow_html=True)
+
+            st.write("")  # Spacing
+
         # Legend
         legend_cols = st.columns(5)
         with legend_cols[0]:
@@ -384,17 +598,24 @@ if st.session_state.processed:
 
         st.write("")  # Spacing
 
-        # Grid statistics
-        stat_col1, stat_col2, stat_col3 = st.columns(3)
-        with stat_col1:
+        # Detailed Grid Metrics
+        st.markdown("### 📍 Grid Details")
+        detail_col1, detail_col2, detail_col3 = st.columns(3)
+        with detail_col1:
             st.metric("🚁 Drone Position (Grid Coordinates)", f"({drone_pos[0]}, {drone_pos[1]})")
-        with stat_col2:
-            st.metric("🔍 Cells Scanned (within radius 2)", f"{len(scanned)} cells")
-        with stat_col3:
+        with detail_col2:
             if nearest:
-                st.metric("⭐ Nearest Safe Landing Cell", f"({nearest[0]}, {nearest[1]})")
+                st.metric("⭐ Selected Landing Cell", f"({nearest[0]}, {nearest[1]})")
+                # Calculate distance
+                if nearest:
+                    distance_to_landing = ((nearest[0] - drone_pos[0])**2 + (nearest[1] - drone_pos[1])**2)**0.5
+                    st.caption(f"Distance: {distance_to_landing:.2f} cells")
             else:
-                st.metric("⭐ Nearest Safe Landing Cell", "None Available", delta="🔴 Critical")
+                st.metric("⭐ Selected Landing Cell", "None Available", delta="🔴 Critical")
+        with detail_col3:
+            st.metric("🔍 Total Cells Scanned", f"{len(scanned)} cells" if len(scanned) > 0 else "No scan performed")
+            if len(scanned) > 0:
+                st.caption(f"Scan radius: 2 cells")
 
     st.divider()
 
