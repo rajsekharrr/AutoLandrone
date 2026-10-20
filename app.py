@@ -8,72 +8,152 @@ from src.config import BATTERY_CRITICAL_THRESHOLD, OBSTACLE_SAFE_DISTANCE
 
 st.set_page_config(page_title="AutoLandrone - Emergency Landing System", layout="wide", initial_sidebar_state="collapsed")
 
-# Custom CSS for presentation-ready styling
+# Custom CSS for presentation-quality classroom demonstration
 st.markdown("""
 <style>
+    /* Main header - high contrast */
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%);
+        padding: 2.5rem;
+        border-radius: 12px;
         margin-bottom: 2rem;
         color: white;
         text-align: center;
     }
+    .main-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+    .main-header p {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        font-weight: 500;
+    }
+
+    /* Status boxes - accessible colors with better contrast */
     .status-safe {
-        background-color: #d4edda;
-        border-left: 5px solid #28a745;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .status-warning {
-        background-color: #fff3cd;
-        border-left: 5px solid #ffc107;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .status-danger {
-        background-color: #f8d7da;
-        border-left: 5px solid #dc3545;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .step-box {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
+        background-color: #d1fae5;
+        border: 3px solid #059669;
+        border-left: 8px solid #059669;
+        padding: 1.5rem;
         border-radius: 8px;
-        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+    .status-safe h3 {
+        color: #065f46;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    .status-safe h2 {
+        color: #047857;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    .status-safe p {
+        color: #065f46;
+        font-size: 1.1rem;
+    }
+
+    .status-warning {
+        background-color: #fef3c7;
+        border: 3px solid #d97706;
+        border-left: 8px solid #d97706;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    .status-warning h3, .status-warning h4 {
+        color: #92400e;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    .status-warning h2 {
+        color: #b45309;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    .status-warning p {
+        color: #78350f;
+        font-size: 1.15rem;
+        line-height: 1.6;
+    }
+
+    .status-danger {
+        background-color: #fee2e2;
+        border: 3px solid #dc2626;
+        border-left: 8px solid #dc2626;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    .status-danger h3 {
+        color: #991b1b;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    .status-danger h2 {
+        color: #b91c1c;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    .status-danger p {
+        color: #991b1b;
+        font-size: 1.1rem;
+    }
+
+    /* Step boxes - clearer progression */
+    .step-box {
+        background: #f3f4f6;
+        border: 3px solid #d1d5db;
+        border-radius: 10px;
+        padding: 1.2rem;
         margin: 0.5rem 0;
         text-align: center;
+        font-size: 1rem;
+    }
+    .step-box strong {
+        font-size: 1.1rem;
     }
     .step-active {
-        border-color: #007bff;
-        background: #e7f3ff;
+        border-color: #3b82f6;
+        background: #dbeafe;
         font-weight: bold;
     }
     .step-complete {
-        border-color: #28a745;
-        background: #d4edda;
+        border-color: #059669;
+        background: #d1fae5;
+        font-weight: bold;
     }
+
+    /* Grid cells - larger and more visible */
     .grid-cell {
         display: inline-block;
-        width: 45px;
-        height: 45px;
+        width: 55px;
+        height: 55px;
         text-align: center;
-        line-height: 45px;
-        margin: 3px;
-        border-radius: 8px;
-        font-size: 24px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        line-height: 55px;
+        margin: 4px;
+        border-radius: 10px;
+        font-size: 32px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        border: 2px solid rgba(0,0,0,0.1);
+        font-weight: bold;
     }
-    .metric-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        text-align: center;
+
+    /* Ensure body text is readable */
+    body, .stMarkdown {
+        font-size: 1.1rem;
+    }
+
+    /* Metric labels - larger fonts */
+    .stMetric label {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+    }
+    .stMetric [data-testid="stMetricValue"] {
+        font-size: 1.8rem !important;
+        font-weight: 700 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -82,9 +162,7 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <h1>🚁 AutoLandrone: Smart Emergency Landing Assistant</h1>
-    <p style="font-size: 1.1rem; margin-top: 1rem;">
-        <strong>Review 1 Demonstration</strong> - Software Prototype for Safe Drone Emergency Landing
-    </p>
+    <p><strong>Review 1 Demonstration</strong> - Software Prototype for Safe Drone Emergency Landing</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -92,13 +170,14 @@ st.markdown("""
 st.info("""
 📘 **About This Demo**: This is a **software simulation** demonstrating the emergency landing decision logic.
 The system monitors battery levels and obstacle distances to intelligently select safe landing zones.
-**Hardware integration** (Pixhawk autopilot, ultrasonic sensors) is planned for future phases after validating the software logic.
+**Hardware integration** (Pixhawk autopilot, ultrasonic sensors) is planned for future phases.
 """)
 
 st.divider()
 
-# Simplified scenario selection
-st.subheader("🎯 Select Demonstration Scenario")
+# Scenario selection
+st.markdown("### 🎯 Select Demonstration Scenario")
+st.write("")  # spacing
 
 scenarios = {
     "1. ✅ Normal Monitoring (Battery OK)": {
@@ -140,8 +219,9 @@ scenario_name = st.selectbox(
 )
 scenario = scenarios[scenario_name]
 
-# Display scenario description
-st.markdown(f"**Scenario Description:** {scenario['description']}")
+# Display scenario description with better visibility
+st.markdown(f"**📝 Scenario:** {scenario['description']}")
+st.write("")  # spacing
 
 # Initialize session state
 if "logger" not in st.session_state or st.session_state.get("last_scenario") != scenario_name:
@@ -159,35 +239,39 @@ st.divider()
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.subheader("📊 Current Telemetry & Status")
+    st.markdown("### 📊 Current Telemetry & Status")
+    st.write("")  # spacing
 
     battery = scenario["battery"]
     distance = scenario["distance"]
 
-    # Battery status with color coding
-    battery_status = "🟢 NORMAL" if battery > BATTERY_CRITICAL_THRESHOLD else "🔴 CRITICAL"
+    # Battery status with improved contrast
+    battery_status = "NORMAL" if battery > BATTERY_CRITICAL_THRESHOLD else "CRITICAL"
     battery_color = "status-safe" if battery > BATTERY_CRITICAL_THRESHOLD else "status-danger"
 
     st.markdown(f"""
     <div class="{battery_color}">
-        <h3 style="margin: 0;">🔋 Battery: {battery}% - {battery_status}</h3>
-        <p style="margin: 0.5rem 0 0 0;">Critical Threshold: {BATTERY_CRITICAL_THRESHOLD}%</p>
+        <h3>🔋 Battery Level: {battery}%</h3>
+        <h2>{battery_status}</h2>
+        <p>Critical Threshold: ≤ {BATTERY_CRITICAL_THRESHOLD}%</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Obstacle status with color coding
-    obstacle_status = "🟢 SAFE" if distance >= OBSTACLE_SAFE_DISTANCE else "🔴 UNSAFE"
+    # Obstacle status with improved contrast
+    obstacle_status = "SAFE" if distance >= OBSTACLE_SAFE_DISTANCE else "UNSAFE"
     obstacle_color = "status-safe" if distance >= OBSTACLE_SAFE_DISTANCE else "status-danger"
 
     st.markdown(f"""
     <div class="{obstacle_color}">
-        <h3 style="margin: 0;">📏 Obstacle Distance: {distance}m - {obstacle_status}</h3>
-        <p style="margin: 0.5rem 0 0 0;">Safe Distance Threshold: {OBSTACLE_SAFE_DISTANCE}m</p>
+        <h3>📏 Obstacle Distance: {distance}m</h3>
+        <h2>{obstacle_status}</h2>
+        <p>Safe Distance Threshold: ≥ {OBSTACLE_SAFE_DISTANCE}m</p>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
-    st.subheader("🎬 Run Simulation")
+    st.markdown("### 🎬 Run Simulation")
+    st.write("")  # Spacing
     st.write("")  # Spacing
     st.write("")  # Spacing
     if st.button("▶️ RUN SCENARIO", type="primary", use_container_width=True):
@@ -291,13 +375,17 @@ if "animation_complete" in st.session_state and not st.session_state.animation_c
                 for row in range(grid_size):
                     for col in range(grid_size):
                         if (row, col) == drone_pos:
-                            grid_html += "<span class='grid-cell' style='background-color: #28a745; color: white;'>🚁</span>"
+                            # Drone - bright green
+                            grid_html += "<span class='grid-cell' style='background-color: #059669; color: white;'>🚁</span>"
                         elif grid[row][col] == 'obstacle':
-                            grid_html += "<span class='grid-cell' style='background-color: #dc3545; color: white;'>❌</span>"
+                            # Obstacle - bright red
+                            grid_html += "<span class='grid-cell' style='background-color: #dc2626; color: white;'>❌</span>"
                         elif (row, col) in scanned_cells:
-                            grid_html += "<span class='grid-cell' style='background-color: #007bff; color: white;'>🔍</span>"
+                            # Scanned - amber/orange
+                            grid_html += "<span class='grid-cell' style='background-color: #f59e0b; color: white;'>🔍</span>"
                         else:
-                            grid_html += "<span class='grid-cell' style='background-color: #e9ecef; color: #6c757d;'>⬜</span>"
+                            # Empty - light gray
+                            grid_html += "<span class='grid-cell' style='background-color: #e5e7eb; color: #9ca3af;'>⬜</span>"
                     grid_html += "<br>"
                 grid_html += "</div>"
 
@@ -326,20 +414,25 @@ if "animation_complete" in st.session_state and not st.session_state.animation_c
         if nearest:
             status_placeholder.success(f"**Step 4/5:** ✅ Safe landing cell found at ({nearest[0]}, {nearest[1]})!")
 
-            # Show final grid with selected cell
+            # Show final grid with selected cell - high visibility colors
             grid_html = "<div style='text-align: center;'>"
             for row in range(grid_size):
                 for col in range(grid_size):
                     if (row, col) == drone_pos:
-                        grid_html += "<span class='grid-cell' style='background-color: #28a745; color: white;'>🚁</span>"
+                        # Drone - bright green
+                        grid_html += "<span class='grid-cell' style='background-color: #059669; color: white;'>🚁</span>"
                     elif (row, col) == nearest:
-                        grid_html += "<span class='grid-cell' style='background-color: #ffc107; color: white;'>⭐</span>"
+                        # Selected landing - bright yellow/gold
+                        grid_html += "<span class='grid-cell' style='background-color: #eab308; color: white; border: 3px solid #ca8a04;'>⭐</span>"
                     elif grid[row][col] == 'obstacle':
-                        grid_html += "<span class='grid-cell' style='background-color: #dc3545; color: white;'>❌</span>"
+                        # Obstacle - bright red
+                        grid_html += "<span class='grid-cell' style='background-color: #dc2626; color: white;'>❌</span>"
                     elif (row, col) in scanned_cells:
-                        grid_html += "<span class='grid-cell' style='background-color: #007bff; color: white;'>🔍</span>"
+                        # Scanned - amber
+                        grid_html += "<span class='grid-cell' style='background-color: #f59e0b; color: white;'>🔍</span>"
                     else:
-                        grid_html += "<span class='grid-cell' style='background-color: #e9ecef; color: #6c757d;'>⬜</span>"
+                        # Empty - light gray
+                        grid_html += "<span class='grid-cell' style='background-color: #e5e7eb; color: #9ca3af;'>⬜</span>"
                 grid_html += "<br>"
             grid_html += "</div>"
             grid_placeholder.markdown(grid_html, unsafe_allow_html=True)
@@ -454,8 +547,9 @@ if st.session_state.processed:
 
     st.divider()
 
-    # Decision result display
-    st.subheader("✅ Decision Result")
+    # Decision result display - MAIN RESULT - Highly visible
+    st.markdown("## ✅ Final Decision")
+    st.write("")  # spacing
 
     result_col1, result_col2 = st.columns(2)
 
@@ -468,8 +562,8 @@ if st.session_state.processed:
 
         st.markdown(f"""
         <div class="{state_color}">
-            <h3 style="margin: 0;">🎯 System State</h3>
-            <h2 style="margin: 0.5rem 0;">{st.session_state.final_state}</h2>
+            <h3>🎯 System State</h3>
+            <h2>{st.session_state.final_state}</h2>
         </div>
         """, unsafe_allow_html=True)
 
@@ -482,16 +576,16 @@ if st.session_state.processed:
 
         st.markdown(f"""
         <div class="{action_color}">
-            <h3 style="margin: 0;">⚙️ Selected Action</h3>
-            <h2 style="margin: 0.5rem 0;">{st.session_state.final_action.replace('_', ' ')}</h2>
+            <h3>⚙️ Selected Action</h3>
+            <h2>{st.session_state.final_action.replace('_', ' ')}</h2>
         </div>
         """, unsafe_allow_html=True)
 
     # Decision explanation
     st.markdown(f"""
     <div class="status-warning">
-        <h4 style="margin: 0;">📝 Decision Explanation</h4>
-        <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem;">{st.session_state.final_reason}</p>
+        <h4>📝 Decision Explanation</h4>
+        <p>{st.session_state.final_reason}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -504,7 +598,8 @@ if st.session_state.processed:
     # Grid visualization
     if st.session_state.grid_state:
         st.divider()
-        st.subheader("🗺️ Visual Landing Zone Grid (7×7)")
+        st.markdown("## 🗺️ Landing Zone Grid (7×7)")
+        st.write("")  # spacing
 
         grid_state = st.session_state.grid_state
         grid = grid_state['grid']
@@ -525,72 +620,84 @@ if st.session_state.processed:
 
         # Scan Summary Box (only if scanning occurred)
         if total_scanned > 0:
+            st.markdown("### 📊 Scan Results")
             scan_summary_col1, scan_summary_col2, scan_summary_col3, scan_summary_col4 = st.columns(4)
 
             with scan_summary_col1:
                 st.markdown("""
                 <div class="status-safe" style="text-align: center;">
-                    <h3 style="margin: 0;">📊 Scan Summary</h3>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> cells scanned</p>
+                    <h3>Total Scanned</h3>
+                    <h2>{}</h2>
+                    <p>cells checked</p>
                 </div>
                 """.format(total_scanned), unsafe_allow_html=True)
 
             with scan_summary_col2:
                 st.markdown("""
                 <div class="status-safe" style="text-align: center;">
-                    <h3 style="margin: 0;">✅ Safe Cells</h3>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> available</p>
+                    <h3>✅ Safe</h3>
+                    <h2>{}</h2>
+                    <p>cells available</p>
                 </div>
                 """.format(safe_count), unsafe_allow_html=True)
 
             with scan_summary_col3:
                 st.markdown("""
                 <div class="status-danger" style="text-align: center;">
-                    <h3 style="margin: 0;">❌ Blocked</h3>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{}</strong> obstacles</p>
+                    <h3>❌ Blocked</h3>
+                    <h2>{}</h2>
+                    <p>obstacles found</p>
                 </div>
                 """.format(blocked_count), unsafe_allow_html=True)
 
             with scan_summary_col4:
                 success_rate = (safe_count / total_scanned * 100) if total_scanned > 0 else 0
+                rate_color = "status-safe" if success_rate > 50 else "status-danger"
                 st.markdown("""
-                <div class="status-warning" style="text-align: center;">
-                    <h3 style="margin: 0;">📈 Success Rate</h3>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;"><strong>{:.1f}%</strong> safe</p>
+                <div class="{}" style="text-align: center;">
+                    <h3>Success Rate</h3>
+                    <h2>{:.0f}%</h2>
+                    <p>safe cells</p>
                 </div>
-                """.format(success_rate), unsafe_allow_html=True)
+                """.format(rate_color, success_rate), unsafe_allow_html=True)
 
             st.write("")  # Spacing
 
-        # Legend
+        # Legend with better visibility
+        st.markdown("### Grid Legend")
         legend_cols = st.columns(5)
         with legend_cols[0]:
-            st.markdown("🚁 **Drone Position**")
+            st.markdown("🚁 **Drone** (Green)")
         with legend_cols[1]:
-            st.markdown("❌ **Obstacle**")
+            st.markdown("❌ **Obstacle** (Red)")
         with legend_cols[2]:
-            st.markdown("🔍 **Scanned Cell**")
+            st.markdown("🔍 **Scanned** (Amber)")
         with legend_cols[3]:
-            st.markdown("⭐ **Safe Landing Zone**")
+            st.markdown("⭐ **Landing** (Yellow)")
         with legend_cols[4]:
-            st.markdown("⬜ **Empty Cell**")
+            st.markdown("⬜ **Empty** (Gray)")
 
         st.write("")  # Spacing
 
-        # Grid display
+        # Grid display with high-contrast colors
         grid_html = "<div style='text-align: center;'>"
         for row in range(grid_state['grid_size']):
             for col in range(grid_state['grid_size']):
                 if (row, col) == drone_pos:
-                    grid_html += "<span class='grid-cell' style='background-color: #28a745; color: white;'>🚁</span>"
+                    # Drone - bright green
+                    grid_html += "<span class='grid-cell' style='background-color: #059669; color: white;'>🚁</span>"
                 elif (row, col) == nearest:
-                    grid_html += "<span class='grid-cell' style='background-color: #ffc107; color: white;'>⭐</span>"
+                    # Selected landing - bright yellow with thick border
+                    grid_html += "<span class='grid-cell' style='background-color: #eab308; color: white; border: 4px solid #ca8a04;'>⭐</span>"
                 elif grid[row][col] == 'obstacle':
-                    grid_html += "<span class='grid-cell' style='background-color: #dc3545; color: white;'>❌</span>"
+                    # Obstacle - bright red
+                    grid_html += "<span class='grid-cell' style='background-color: #dc2626; color: white;'>❌</span>"
                 elif (row, col) in scanned:
-                    grid_html += "<span class='grid-cell' style='background-color: #007bff; color: white;'>🔍</span>"
+                    # Scanned - amber
+                    grid_html += "<span class='grid-cell' style='background-color: #f59e0b; color: white;'>🔍</span>"
                 else:
-                    grid_html += "<span class='grid-cell' style='background-color: #e9ecef; color: #6c757d;'>⬜</span>"
+                    # Empty - light gray
+                    grid_html += "<span class='grid-cell' style='background-color: #e5e7eb; color: #9ca3af;'>⬜</span>"
             grid_html += "<br>"
         grid_html += "</div>"
 
@@ -598,24 +705,26 @@ if st.session_state.processed:
 
         st.write("")  # Spacing
 
-        # Detailed Grid Metrics
+        # Detailed Grid Metrics - larger fonts
         st.markdown("### 📍 Grid Details")
         detail_col1, detail_col2, detail_col3 = st.columns(3)
         with detail_col1:
-            st.metric("🚁 Drone Position (Grid Coordinates)", f"({drone_pos[0]}, {drone_pos[1]})")
+            st.metric("🚁 Drone Position", f"Row {drone_pos[0]}, Col {drone_pos[1]}")
         with detail_col2:
             if nearest:
-                st.metric("⭐ Selected Landing Cell", f"({nearest[0]}, {nearest[1]})")
-                # Calculate distance
-                if nearest:
-                    distance_to_landing = ((nearest[0] - drone_pos[0])**2 + (nearest[1] - drone_pos[1])**2)**0.5
-                    st.caption(f"Distance: {distance_to_landing:.2f} cells")
+                st.metric("⭐ Landing Cell", f"Row {nearest[0]}, Col {nearest[1]}")
+                distance_to_landing = ((nearest[0] - drone_pos[0])**2 + (nearest[1] - drone_pos[1])**2)**0.5
+                st.caption(f"📏 Distance: {distance_to_landing:.2f} cells from drone")
             else:
-                st.metric("⭐ Selected Landing Cell", "None Available", delta="🔴 Critical")
+                st.metric("⭐ Landing Cell", "None Available")
+                st.caption("🔴 All nearby cells blocked")
         with detail_col3:
-            st.metric("🔍 Total Cells Scanned", f"{len(scanned)} cells" if len(scanned) > 0 else "No scan performed")
             if len(scanned) > 0:
-                st.caption(f"Scan radius: 2 cells")
+                st.metric("🔍 Scanned", f"{len(scanned)} cells")
+                st.caption(f"Radius: 2 cells around drone")
+            else:
+                st.metric("🔍 Scanned", "No scan needed")
+                st.caption("Direct landing available")
 
     st.divider()
 
