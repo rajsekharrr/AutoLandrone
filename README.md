@@ -117,14 +117,129 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Running the Streamlit Dashboard
+### Running the Interactive Dashboard
 
-Launch the interactive dashboard:
+Launch the presentation-ready dashboard:
 ```bash
 streamlit run app.py
 ```
 
 The dashboard will open in your default web browser (typically at `http://localhost:8501`).
+
+### Presentation Instructions for Review 1
+
+The dashboard is designed for easy demonstration to professors and reviewers. Follow these steps:
+
+#### **Quick 5-Minute Demo**
+
+1. **Launch the Dashboard**
+   ```bash
+   streamlit run app.py
+   ```
+
+2. **Explain the Project Context** (30 seconds)
+   - Point to the blue banner explaining this is a software simulation
+   - Mention hardware integration is planned for future phases
+
+3. **Demonstrate Scenario 1: Normal Monitoring** (1 minute)
+   - Select "1. ✅ Normal Monitoring (Battery OK)"
+   - Click "▶️ RUN SCENARIO"
+   - Show: Battery is 50% (green), system continues monitoring
+   - Point out: 5-step process flow at top
+
+4. **Demonstrate Scenario 3: Safe Location Found** (2 minutes) ⭐ **Best Demo**
+   - Select "3. 🟡 Obstacle Detected - Safe Location Found"
+   - Click "▶️ RUN SCENARIO"
+   - Walk through the decision process:
+     - Battery: 15% (Critical - red)
+     - Obstacle: 0.8m (Unsafe - red)
+     - System: Hovers and scans grid
+     - Result: Finds nearest safe landing cell
+   - Show the **visual 7×7 grid** with:
+     - 🚁 Drone position (center)
+     - ❌ Obstacles (red cells)
+     - 🔍 Scanned cells (blue)
+     - ⭐ Selected landing zone (yellow)
+   - Explain: System calculated distances and selected nearest safe cell
+
+5. **Demonstrate Scenario 4: No Safe Location** (1 minute)
+   - Select "4. 🔴 Obstacle Detected - No Safe Location"
+   - Click "▶️ RUN SCENARIO"
+   - Show: All cells blocked, system holds position and alerts
+   - Point out: Red alert message at top
+
+6. **Wrap Up** (30 seconds)
+   - Expand "⚙️ System Configuration" to show thresholds
+   - Mention: 39 automated tests all passing
+
+#### **Extended 10-Minute Demo (If Time Permits)**
+
+Follow the 5-minute demo above, then add:
+
+7. **Show All 5 Scenarios** - Run through each scenario quickly
+8. **Explain the Algorithm** - Open configuration panel, explain decision rules
+9. **Show Test Results**
+   ```bash
+   pytest tests/ -v
+   ```
+   - Demonstrate: 39 tests, all passing
+   - Explain: Tests cover nearest cell selection, obstacle filtering, edge cases
+
+#### **Key Points to Emphasize**
+
+✅ **Software-first approach** - Validates logic before hardware integration  
+✅ **Visual demonstration** - Easy to understand 7×7 grid with clear symbols  
+✅ **Intelligent decision-making** - Selects nearest safe cell using Euclidean distance  
+✅ **Safety-critical** - Holds position when no safe landing available  
+✅ **Well-tested** - 39 comprehensive automated tests  
+✅ **SDG 9 alignment** - Low-cost safety enhancement for drone operations  
+
+#### **Recommended Scenario Order**
+
+1. Start with **Scenario 1** (Normal) - Shows baseline monitoring
+2. Demo **Scenario 3** (Safe location found) - Shows grid algorithm ⭐
+3. Demo **Scenario 4** (No safe location) - Shows safety fallback
+4. Optional: **Scenario 2** (Direct landing) - Shows clear area behavior
+5. Optional: **Scenario 5** (Direct safe landing) - Shows no-scan path
+
+#### **If Questions Arise**
+
+- **"How does it select the landing zone?"**  
+  → Show grid, explain Euclidean distance calculation: `sqrt((Δrow)² + (Δcol)²)`
+
+- **"What about hardware?"**  
+  → Explain: Software prototype first, then integrate with Pixhawk (MAVLink) and ultrasonic sensors
+
+- **"Is this tested?"**  
+  → Run `pytest tests/ -v` to show 39 passing tests
+
+- **"What if battery dies during scan?"**  
+  → Good question! Future work: battery consumption modeling during hover
+
+### Dashboard Features
+
+The presentation-ready dashboard includes:
+
+- **🎨 Color-coded status indicators**
+  - 🟢 Green: Safe/Normal conditions
+  - 🟡 Yellow: Warning/Processing
+  - 🔴 Red: Critical/Danger
+
+- **📊 Real-time telemetry display**
+  - Battery percentage with threshold comparison
+  - Obstacle distance with safety assessment
+
+- **🔄 Step-by-step process visualization**
+  - Battery Check → Obstacle Check → Hover & Scan → Find Safe Cell → Final Action
+
+- **🗺️ Visual 7×7 landing zone grid**
+  - Clear emoji-based representation
+  - Color-coded cells for easy understanding
+
+- **✅ Decision result summary**
+  - Current system state
+  - Selected action
+  - Detailed explanation
 
 ### Using the Dashboard
 
